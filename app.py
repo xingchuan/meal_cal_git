@@ -1,31 +1,33 @@
 # coding:utf-8
-from flask import Flask, render_template, request, redirect, url_for
-from flask import send_from_directory
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request
 import os
  
 app = Flask(__name__)
+
+# 设置允许上传的文件类型
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'}
+
+# 检查文件类型是否允许上传
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
  
 @app.route('/', methods=['POST', 'GET'])
-def upload_run():
+def upload_files():
     if request.method == 'POST':
-        # 获取文件信息
-        file1 = request.files['file1']
-        file2 = request.files['file2']
+        files = request.files.getlist('file')
         # 获取应用程序所在目录路径
         basepath = os.path.dirname(__file__)
+        upload_folder = os.path.join(basepath, 'uploads')  # 指定上传文件夹的路径
 
-        # 保存第一个文件
-        if file1:
-            upload_path1 = os.path.join(basepath, file1.filename)
-            file1.save(upload_path1)
-            print('File 1 uploaded.')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)  # 如果上传文件夹不存在，创建它
 
-        # 保存第二个文件
-        if file2:
-            upload_path2 = os.path.join(basepath, file2.filename)
-            file2.save(upload_path2)
-            print('File 2 uploaded.')
+        for file in files:
+            if file and allowed_file(file.filename):
+                filename = file.filename
+                upload_path = os.path.join(upload_folder, filename)  # 确定文件保存的路径
+                file.save(upload_path)
+                print(f'File "{filename}" uploaded to "{upload_path}".')
 
         print('uploading ...')
         import subprocess

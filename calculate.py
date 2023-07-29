@@ -28,8 +28,8 @@ def excel_exec(excel_name):
     return df
 
 
-df1 = excel_exec('食堂1.xlsx')
-df2 = excel_exec('食堂2.xlsx')
+df1 = excel_exec('./uploads/食堂1.xlsx')
+df2 = excel_exec('./uploads/食堂2.xlsx')
 
 # 合并食堂1、食堂2的数据
 df = pd.concat([df1, df2], axis=0)
