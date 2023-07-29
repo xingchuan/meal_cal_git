@@ -1,4 +1,8 @@
 import pandas as pd
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
 
 
 # 此函数可通用，实现1、删除多余的列；2、重命名列名
@@ -153,3 +157,45 @@ def count_charges():
 
 
 count_charges()
+
+
+
+# 以下代码通过邮件发送附件
+# 电子邮件参数
+from_email = "1558351557@qq.com"    # 发件人邮箱
+password = "osnkujiavlmajdbh"       # 发件人邮箱密码
+to_email = "251696664@qq.com"       # 收件人邮箱
+subject = "Excel Attachment"        # 邮件主题
+body = "请查收附件"                 # 邮件正文
+
+# 构建邮件对象
+msg = MIMEMultipart()
+msg['From'] = from_email
+msg['To'] = to_email
+msg['Subject'] = subject
+
+# 添加邮件正文
+msg.attach(MIMEText(body, 'plain'))
+
+# 添加Excel附件
+attachment_paths = [
+    "本月打卡记录.xlsx",  # 第一个附件的路径
+    "每人次数.xlsx",  # 第二个附件的路径
+]
+
+for attachment_path in attachment_paths:
+    with open(attachment_path, "rb") as file:
+        attachment = file.read()
+    excel_attachment = MIMEApplication(attachment)
+    excel_attachment.add_header('Content-Disposition', 'attachment', filename= f'{attachment_path}')
+    msg.attach(excel_attachment)
+
+
+# 发送邮件
+try:
+    with smtplib.SMTP_SSL("smtp.qq.com", 465) as server:  # 请将"smtp.example.com"替换为您的SMTP服务器地址
+        server.login(from_email, password)
+        server.sendmail(from_email, to_email, msg.as_string())
+    print("邮件发送成功！")
+except Exception as e:
+    print(f"邮件发送失败：{e}")
