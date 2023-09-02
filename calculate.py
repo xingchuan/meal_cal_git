@@ -24,24 +24,25 @@ def excel_exec(excel_name):
         '人员编号\nPerson ID': '工号',
         '识别时间\nRecognition time': '识别时间'
     },
-        inplace=True)
+              inplace=True)
     return df
 
 
-df1 = excel_exec('./uploads/食堂1.xlsx')
-df2 = excel_exec('./uploads/食堂2.xlsx')
+# df1 = excel_exec('./uploads/食堂1.xlsx')
+# df2 = excel_exec('./uploads/食堂2.xlsx')
 
-# 合并食堂1、食堂2的数据
-df = pd.concat([df1, df2], axis=0)
-# 将合并后的表格保存为新的Excel文件
-df = df[df.iloc[:, 0] != '人员未注册']
-df['部门'] = df['部门'].str.split('/').str[-1]
-df.to_excel('合并.xlsx', index=False)
+# # 合并食堂1、食堂2的数据
+# df = pd.concat([df1, df2], axis=0)
+# # 将合并后的表格保存为新的Excel文件
+# df = df[df.iloc[:, 0] != '人员未注册']
+# df['部门'] = df['部门'].str.split('/').str[-1]
+# df.to_excel('合并.xlsx', index=False)
 
 
 # 此代码段对所有符合条件（吃饭时间内的刷脸记录）的人员进行筛选，生成一个表格。
 def all_record():
-    df = pd.read_excel('合并.xlsx')
+    df = excel_exec('./uploads/食堂.xlsx')
+    # df = pd.read_excel('合并.xlsx')
 
     df['识别时间'] = pd.to_datetime(df['识别时间'])
 
@@ -63,7 +64,7 @@ def all_record():
 
     sorted_df = df.sort_values(by=['姓名', '识别时间'])
 
-    with pd.ExcelWriter('本月打卡记录.xlsx') as writer:
+    with pd.ExcelWriter('everyone_record.xlsx') as writer:
         sorted_df.to_excel(writer, sheet_name='全部记录', index=False)
 
 
@@ -73,7 +74,8 @@ all_record()
 # 此函数会分别计算每个人的早、晚餐费用
 def meal_charges(start_time, end_time, xls_name, price):
     # 读取Excel文件,删除第一行，将第二行作为列名
-    df = pd.read_excel('合并.xlsx')
+    # df = pd.read_excel('合并.xlsx')
+    df = excel_exec('./uploads/食堂.xlsx')
 
     # 转换时间格式
     # df = df.drop(df[df['姓名'] == '人员未注册'].index, inplace=True)
@@ -146,7 +148,7 @@ def count_charges():
     # 删除姓名重复的行，只保留第一行
     df.drop_duplicates(subset='姓名', keep='first', inplace=True)
 
-    df.to_excel('每人次数.xlsx', index=False)
+    df.to_excel('each_person_times.xlsx', index=False)
 
     # 按部门进行分表（部门列中如果出现异常，此处会失败）
     # grouped = df.groupby('部门')
@@ -158,20 +160,22 @@ def count_charges():
 
 count_charges()
 
-
-
 # 以下代码通过邮件发送附件
 # 电子邮件参数
-from_email = "1558351557@qq.com"    # 发件人邮箱
-password = "osnkujiavlmajdbh"       # 发件人邮箱密码
-to_email = "251696664@qq.com"       # 收件人邮箱
-subject = "Excel Attachment"        # 邮件主题
-body = "请查收附件"                 # 邮件正文
+from_email = "1558351557@qq.com"  # 发件人邮箱
+password = "osnkujiavlmajdbh"  # 发件人邮箱密码
+# to_email = "gu.xingchuan@rml138.com"  # 收件人邮箱，单人
+to_email = ["liu.han@rml138.com", "gu.xingchuan@rml138.com"]        # 收件人邮箱，多人
+subject = "Excel Attachment"  # 邮件主题
+body = "请查收附件"  # 邮件正文
 
 # 构建邮件对象
 msg = MIMEMultipart()
 msg['From'] = from_email
+# 给单人发
 msg['To'] = to_email
+# 给多人发
+msg['To'] = ','.join(to_email)
 msg['Subject'] = subject
 
 # 添加邮件正文
@@ -179,21 +183,23 @@ msg.attach(MIMEText(body, 'plain'))
 
 # 添加Excel附件
 attachment_paths = [
-    "本月打卡记录.xlsx",  # 第一个附件的路径
-    "每人次数.xlsx",  # 第二个附件的路径
+    "everyone_record.xlsx",  # 第一个附件的路径
+    "each_person_times.xlsx",  # 第二个附件的路径
 ]
 
 for attachment_path in attachment_paths:
     with open(attachment_path, "rb") as file:
         attachment = file.read()
     excel_attachment = MIMEApplication(attachment)
-    excel_attachment.add_header('Content-Disposition', 'attachment', filename= f'{attachment_path}')
+    excel_attachment.add_header('Content-Disposition',
+                                'attachment',
+                                filename=f'{attachment_path}')
     msg.attach(excel_attachment)
-
 
 # 发送邮件
 try:
-    with smtplib.SMTP_SSL("smtp.qq.com", 465) as server:  # 请将"smtp.example.com"替换为您的SMTP服务器地址
+    with smtplib.SMTP_SSL("smtp.qq.com",
+                          465) as server:  # 请将"smtp.example.com"替换为您的SMTP服务器地址
         server.login(from_email, password)
         server.sendmail(from_email, to_email, msg.as_string())
     print("邮件发送成功！")
