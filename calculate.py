@@ -162,20 +162,16 @@ count_charges()
 
 # 以下代码通过邮件发送附件
 # 电子邮件参数
-from_email = "1558351557@qq.com"  # 发件人邮箱
-password = "osnkujiavlmajdbh"  # 发件人邮箱密码
-# to_email = "gu.xingchuan@rml138.com"  # 收件人邮箱，单人
-to_email = ["liu.han@rml138.com", "gu.xingchuan@rml138.com"]        # 收件人邮箱，多人
-subject = "Excel Attachment"  # 邮件主题
-body = "请查收附件"  # 邮件正文
+from_email = "1558351557@qq.com"    # 发件人邮箱
+password = "osnkujiavlmajdbh"       # 发件人邮箱密码
+to_email = "251696664@qq.com"       # 收件人邮箱
+subject = "Excel Attachment"        # 邮件主题
+body = "请查收附件"                 # 邮件正文
 
 # 构建邮件对象
 msg = MIMEMultipart()
 msg['From'] = from_email
-# 给单人发
 msg['To'] = to_email
-# 给多人发
-msg['To'] = ','.join(to_email)
 msg['Subject'] = subject
 
 # 添加邮件正文
@@ -191,17 +187,14 @@ for attachment_path in attachment_paths:
     with open(attachment_path, "rb") as file:
         attachment = file.read()
     excel_attachment = MIMEApplication(attachment)
-    excel_attachment.add_header('Content-Disposition',
-                                'attachment',
-                                filename=f'{attachment_path}')
+    excel_attachment.add_header('Content-Disposition', 'attachment', filename= f'{attachment_path}')
     msg.attach(excel_attachment)
 
 # 发送邮件
 try:
-    with smtplib.SMTP_SSL("smtp.qq.com",
-                          465) as server:  # 请将"smtp.example.com"替换为您的SMTP服务器地址
+    with smtplib.SMTP_SSL("smtp.qq.com", 465) as server:  # 请将"smtp.example.com"替换为您的SMTP服务器地址
         server.login(from_email, password)
-        server.sendmail(from_email, to_email, msg.as_string())
+        server.sendmail(from_email, to_emails, msg.as_string())  # 将收件人列表传递给sendmail()方法
     print("邮件发送成功！")
 except Exception as e:
     print(f"邮件发送失败：{e}")

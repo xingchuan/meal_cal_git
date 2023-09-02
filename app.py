@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # 设置允许上传的文件类型
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'}
+ALLOWED_EXTENSIONS = {'xlsx'}
 
 
 # 检查文件类型是否允许上传
